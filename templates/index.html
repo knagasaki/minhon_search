@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+        <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	    <title>みん翻検索 by SAT</title>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	        <link rel="stylesheet" href="/static/minhon.css">
+		<script src="/static/js/jquery-3.4.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+		</head>
+  <body>
+<header class="navbar navbar-light bg-success">
+ <a class="navbar-brand text-white" href="/">
+ <img src="https://dzkimgs.l.u-tokyo.ac.jp/SATi/satlogo80.png" height="30" width="27" class="d-inline-block align-top" alt="Logo">　みんなで翻刻 サーチ</a> 
+<div class="navbar-nav"><a class="nav-item text-white" href="http://21dzk.l.u-tokyo.ac.jp/SAT/">by SAT</a></div>
+ 
+</header>
+<div class="container-fluid">
+  <div class="row">
+   <div class="col-3">
+    <form action = "/search/" method = "GET" id="search_form">
+<div class="form-row">
+<div class="form-group col-9">
+      <div>キーワード: <input class="form-control" type="text" name="url_key" id="url_key" width="150" minlength="1" maxlength="1000"　required  placeholder="ここにキーワードを！" value="{{sch_key}}"></div>
+</div>
+</div>
+<div class="form-row">
+<div class="form-group col-9">
+<select name="url_var" class="form-control">
+<option value="1">異体字一括検索
+<option value="0">そのまま検索
+</select>
+</div>
+</div>
+<div class="form-row">
+<div class="form-group col-9">
+      検索するプロジェクト: 
+</div></div>
+<div class="form-row">
+<div class="form-group col-9">
+<select name="url_proj" class="form-control" value="すべて"/>
+<option value="すべて">すべて
+ {% for proj in proj_list %}
+ {% set loop_id = loop.index %} 
+  <option value="{{proj}}">{{proj}}
+       {% endfor %}
+</select>
+</div>
+</div>
+<div class="form-row">
+<div class="form-group col-9">
+      検索するコレクション: 
+</div></div>
+<div class="form-row">
+<div class="form-group col-9">
+<select name="url_col" class="form-control" value="すべて"/>
+<option value="すべて">すべて
+
+ {% for col in col_list %}
+ {% set loop_id = loop.index %} 
+  <option value="{{col}}">{{col}}
+       {% endfor %}
+</select>
+</div>
+</div>
+<div class="form-row">
+<div class="form-group col-9">
+      <input class="btn btn-success" type="submit" value="検索">
+      </div><!--<div class="form-group">-->
+</div><!--<div class="form-row">-->
+      </form>
+
+<div>
+  <div>{{entry_menu}}
+
+    &nbsp;<i class="far fa-folder"></i>
+<!--    <i class="fas fa-folder-open"></i>-->
+  </div>   
+  {% for proj in entry_list %}
+<div>{{proj.proj}}</div>
+<div class="ent_links">
+<ul>  
+  {% for entry in proj.projdata %}
+<li>  <a href="/search/?{{entry.uval}}">{{entry.nm}}</a>
+   {% endfor %}
+</ul>
+</div>
+ {% endfor %}
+</div>
+
+    </div><!--<div class="col-3">-->
+
+    <div class="col-9">
+<div id="sch_key" class="alert alert-warning"><span class="entry_title">検索語</span>：{{sch_key}} 
+<span class="entry_title">ヒット頁数</span>：{{hit_key}} {{debug_url}}</div>
+{{ pagination.links }}
+
+     <ul id="nav" class="list-group">
+           {% for item in navigation %}
+        <li class="list-group-item"><span class="entry_title">{{docs[item][0]}} p. {{docs[item][4]}}</span><img height="100" src="{{docs[item][2]}}"/>
+<a href="https://honkoku.org/app/#/transcription/{{docs[item][3]}}/{{docs[item][4]}}" target="_blank">「みんなで翻刻」の該当頁</a>
+<ul class="list-group">
+             {% for snippet in navigation[item].hitcontent %}
+          <li class="list-group-item">
+{{snippet|safe}} </li>
+	      {% endfor %}
+    </ul>    </li>             
+	   {% endfor %}
+       </ul>
+{{ pagination.links }}
+</div><!--<div class="col">-->
+</div><!--<div class="row">-->
+</div><!--<div class="container">-->
+
+<script>
+$(function(){
+$("select[name='url_proj']").change(function(){
+ console.log($(this).val());
+ var uname = encodeURIComponent($(this).val());
+ var qUrl = '/get_list/?type=proj&name='+uname;
+ $.ajax({
+  url:qUrl,
+  dataType:"json"
+ }).done(function(data){
+  $('select[name="url_col"]').find("option").remove();
+    $("<option>", {value: 'すべて' ,text: 'すべて'}).appendTo('select[name="url_col"]');
+  $.each(data, function(nm,vl){
+    $("<option>", {value: nm ,text: nm}).appendTo('select[name="url_col"]');
+    console.log(nm);   
+  });
+ });
+ console.log('aa');
+ console.log(qUrl);
+});
+$("#search_form").on("submit", function(e){
+ if ($("#url_key").val() == ''){
+  alert('検索キーワードを入力してください');
+  return false;
+ } 
+ else{
+  
+ }
+});
+$('select[name="url_var"]').val({{pr_sch_var}});
+$('select[name="url_proj"]').val('{{pr_sch_proj}}');
+$('select[name="url_col"]').val('{{pr_sch_col}}');
+});
+</script>
+
+     </body>
+  </html>
