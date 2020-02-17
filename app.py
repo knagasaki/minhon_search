@@ -1,6 +1,5 @@
 # coding: utf-8
 from flask import Flask, render_template, request, jsonify
-# Blueprintはpagenateのため
 from flask_paginate import Pagination, get_page_parameter
 import csv
 import urllib.parse
