@@ -4,8 +4,13 @@
         <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	    <title>みん翻検索 by SAT</title>
+<link href="/static/fontawesome-free-5.12.1-web/css/all.css" rel="stylesheet">
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 	        <link rel="stylesheet" href="/static/minhon.css">
+<style>
+.ent_line{cursor:pointer}
+.ent_line:hover{color:blue}
+</style>
 		<script src="/static/js/jquery-3.4.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
@@ -74,12 +79,16 @@
 
 <div>
   <div>{{entry_menu}}
-
-    &nbsp;<i class="far fa-folder"></i>
-<!--    <i class="fas fa-folder-open"></i>-->
   </div>   
+<ul>
   {% for proj in entry_list %}
-<div>{{proj.proj}}</div>
+<div class="ent_obj">
+<li><div class="ent_line">
+<i class="far fa-folder"></i>
+    <i style="display:none" class="fas fa-folder-open"></i>
+{{proj.proj}}
+    
+</div>
 <div class="ent_links">
 <ul>  
   {% for entry in proj.projdata %}
@@ -87,7 +96,9 @@
    {% endfor %}
 </ul>
 </div>
+</div><!--<div class="ent_obj">-->
  {% endfor %}
+</ul>
 </div>
 
     </div><!--<div class="col-3">-->
@@ -143,9 +154,22 @@ $("#search_form").on("submit", function(e){
   
  }
 });
+$(".ent_line").click(function(){
+ if($(this).find(".fas").css('display') == 'none'){
+ $(this).parents(".ent_obj").find(".ent_links").show();
+ $(this).find(".far").hide();
+ $(this).find(".fas").show();
+ }
+ else{
+ $(this).parents(".ent_obj").find(".ent_links").hide();
+ $(this).find(".far").show();
+ $(this).find(".fas").hide();
+ }
+});
 $('select[name="url_var"]').val({{pr_sch_var}});
 $('select[name="url_proj"]').val('{{pr_sch_proj}}');
 $('select[name="url_col"]').val('{{pr_sch_col}}');
+$('.ent_links').hide();
 });
 </script>
 
