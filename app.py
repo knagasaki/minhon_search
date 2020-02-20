@@ -12,31 +12,31 @@ app.config['JSON_AS_ASCII'] = False
 
 def get_col(proj):
    solr_url = 'http://localhost:8983/solr/minhon/select?'
-   solr_url = solr_url + 'fl=collection&q=*&group=true&group.field=collection'
+   solr_url = solr_url + 'fl=collection_st&q=*&group=true&group.field=collection_st'
    if proj != 'すべて':
       solr_url = solr_url +'&fq=project:"'+urllib.parse.quote(proj)+'"'
    req = urllib.request.Request(solr_url)
    res = urllib.request.urlopen(req)
    array_body = json.loads(res.read().decode('utf-8'))
-   array_group = array_body['grouped']['collection']['groups']
+   array_group = array_body['grouped']['collection_st']['groups']
    array_col = {}
    for egroup in array_group:
       enum = egroup['doclist']['numFound']
-      collection = egroup['doclist']['docs'][0]['collection']
+      collection = egroup['doclist']['docs'][0]['collection_st']
       array_col[collection] = enum
    return (array_col)
 
 def get_proj():
    solr_url = 'http://localhost:8983/solr/minhon/select?'
-   solr_url = solr_url + 'fl=project&q=*&group=true&group.field=project'
+   solr_url = solr_url + 'fl=project_st&q=*&group=true&group.field=project_st'
    req = urllib.request.Request(solr_url)
    res = urllib.request.urlopen(req)
    array_body = json.loads(res.read().decode('utf-8'))
-   array_group = array_body['grouped']['project']['groups']
+   array_group = array_body['grouped']['project_st']['groups']
    array_proj = {}
    for egroup in array_group:
       enum = egroup['doclist']['numFound']
-      project = egroup['doclist']['docs'][0]['project']
+      project = egroup['doclist']['docs'][0]['project_st']
       array_proj[project] = enum
    return (array_proj)
 
