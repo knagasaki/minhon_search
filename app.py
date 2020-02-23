@@ -46,7 +46,79 @@ def hello3():
    get_type = request.args.get('type', '')
    get_name = request.args.get('name', '')
    if get_type == 'proj':
-      return jsonify(get_col(get_name))   
+      return jsonify(get_col(get_name))
+
+@app.route('/get_words/')
+def hello4():
+   sch_obj = 'textConn'
+   sch_wnum = request.args.get('url_wnum', '')
+   sch_key = request.args.get('url_key', '')
+   sch_proj = request.args.get('url_proj', '')
+   sch_col = request.args.get('url_col', '')
+   sch_pos = request.args.get('url_pos', '')   
+   sch_entid = request.args.get('url_entid', '')   
+   url_enc_key = '"'+urllib.parse.quote(sch_key, safe='~')+'"'
+   sch_title  = request.args.get('url_title', '')
+   solr_url = 'http://localhost:8983/solr/minhon/select?'
+   solr_url = solr_url + 'hl=true&hl.fragsize=50&rows=100000&hl.snippets=100&hl.fl='+sch_obj+'&start=1&'
+   solr_url = solr_url + 'q='+sch_obj+':'
+   #%E4%BD%9B
+   solr_url = solr_url + url_enc_key
+   if sch_entid != '':
+      solr_url = solr_url + '%20AND%20entryID:'+sch_entid
+   if sch_col != 'すべて':
+      solr_url = solr_url+'%20AND%20collection:"'+urllib.parse.quote(sch_col)+'"'
+   if sch_proj != 'すべて':
+      solr_url = solr_url+'%20AND%20project:"'+urllib.parse.quote(sch_proj)+'"'
+   solr_url = solr_url+'&facet.pivot=project_st,collection_st,entryID,entry_st&facet=on&facet.sort=count'
+   pr_sch_key = sch_key
+   pr_sch_col = sch_col
+   pr_sch_proj = sch_proj
+#   req = urllib.request.Request(solr_url)
+#   res = urllib.request.urlopen(req)
+   res = urllib.request.urlopen(solr_url)
+   array_body = json.loads(res.read().decode('utf-8'))
+   array_hls = array_body['highlighting']
+   em_dict = {}
+   for pageid,hitlines in array_hls.items():
+      hit_lines = hitlines['textConn']
+      for hit_line in hit_lines:
+         list_emphed = re.split('<em>[^<]+<\/em>', hit_line)
+         if sch_pos == '1':
+            list_emphed.pop(-1)
+         else:
+            list_emphed.pop(0)
+         for emphed in list_emphed:
+            emphed = re.sub('。', '', emphed)
+            emphed = re.sub('、', '', emphed)                        
+            emphed = re.sub('　', '', emphed)
+            wnum = int("-"+sch_wnum)
+            if sch_pos == '1':
+               wnum = int("-"+sch_wnum)
+               word = emphed[wnum:]
+               pr_word = word+"<em>"+sch_key+"</em>"
+            else:
+               wnum = int(sch_wnum)
+               word = emphed[:wnum]               
+               pr_word = "<em>"+sch_key+"</em>"+word
+            word = re.sub(r'\s+', '', word)
+            if len(word) > 0:
+               if pr_word not in em_dict:
+                  em_dict[pr_word] = 0
+               em_dict[pr_word] = em_dict[pr_word] + 1
+   em_dict_sorted = sorted(em_dict.items(), key=lambda x: x[1], reverse=True)
+   em_dict3 = []
+   for em1 in em_dict_sorted:
+#      if int(em1[1]) > 1: 
+        em_dict_e = {}
+        eword = em1[0]
+        ewordnum = em1[1]
+        em_dict_e['word'] = eword
+        em_dict_e['num'] = ewordnum      
+        em_dict3.append(em_dict_e)
+   return jsonify(em_dict3)
+
+#em_dict_sorted)
 
 @app.route('/search/')
 def hello():
@@ -137,12 +209,18 @@ def hello():
                         templ_ent['nm']= f_ent_text
                         proj_dict['projdata'].append(templ_ent)
             templ_ent_list.append(proj_dict)
-   
    entry_menu = ''# ar_entry_st
    if len(templ_ent_list) > 0:
       entry_menu = '資料単位で絞り込み:'
 #   debug_url = templ_ent_list
-   html = render_template('index.html', navigation = array_hls2, docs = array_docs, col_list = array_col, sch_key = pr_sch_key, pr_sch_var=sch_var, pr_sch_col = pr_sch_col, hit_key = hit_key, row = res, pagination = pagination, pr_sch_proj = pr_sch_proj, proj_list = array_proj, debug_url = debug_url, entry_list=templ_ent_list, entry_menu = entry_menu)
+   pr_ent_id = ''
+   pr_ent_name = ''
+   pr_ent_name2 = ''      
+   if sch_entid != '':
+       pr_ent_id = sch_entid
+       pr_ent_name = ent
+       pr_ent_name2 = '『'+ent+'』 のみで検索：'
+   html = render_template('index.html', navigation = array_hls2, docs = array_docs, col_list = array_col, sch_key = pr_sch_key, pr_sch_var=sch_var, pr_sch_col = pr_sch_col, hit_key = hit_key, row = res, pagination = pagination, pr_sch_proj = pr_sch_proj, proj_list = array_proj, debug_url = debug_url, entry_list=templ_ent_list, entry_menu = entry_menu, pr_ent_id=pr_ent_id, pr_ent_name=pr_ent_name, pr_ent_name2=pr_ent_name2)
    return html
 #    return uname
 
